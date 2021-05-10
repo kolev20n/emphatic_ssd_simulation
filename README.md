@@ -1,6 +1,8 @@
 # emphatic_ssd_simulation
 Simulation of the silicon strips for EMPHATIC (stand-alone).
 
+This version uses gdml for the detector construction. Some of the names of the functions needed to be changed as well.
+
 This is a stand-alone simulation for the silicon strip detectors of EMPHATIC. It is a "research and development" version, in the sense that geometry and other things are supposed to change frequently, and it provides a lot of truth information.
 
 The physics is the same as the DetectorSim physics. One difference is that the DefaultCutValue is set to 0.01 mm and is varied in different runs so that experiments can be made at low energy regarding the multiplicity of strips fired in a cluster (by the same particle).
