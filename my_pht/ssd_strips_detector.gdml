@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gdml xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://service-spi.web.cern.ch/service-spi/app/releases/GDML/schema/gdml.xsd">
+  <define>
+    <constant name="total_number_of_plates" value="13" />
+    <constant name="number_of_plates_upstream" value="4" />
+    <constant name="number_of_plates_midstream" value="5" />
+    <constant name="number_of_plates_downstream" value="4" />
+    <constant name="ssd_number_of_strips_upstream" value="640" />
+    <constant name="ssd_number_of_strips_midstream" value="640" />
+    <constant name="ssd_number_of_strips_downstream" value="1280" />
+    <constant name="world_size" value="140.0" />
+    <constant name="plate_length" value="9.0" />
+    <constant name="single_plate_width" value="3.84" />
+    <constant name="double_plate_width" value="7.68" />
+    <constant name="plate_thickness" value="0.08" />
+    <constant name="array_thickness" value="0.03" />
+    <constant name="strip_width" value="0.006" />
+    <!-- matrix name="z_plate" coldim="1" values="-32.0 -31.4 -2.4 -1.8 1.2 1.8 5.4 6.0 6.6 24.0 24.6 36.6 37.2" / -->
+    <matrix name="z_plate" coldim="1" values="-32.0 -31.4 -2.4 -1.8 2.2 2.8 5.4 6.0 6.6 24.0 24.6 36.6 37.2" />
+    <matrix name="rotation_plate" coldim="1" values="0 90 0 90 0 90 45 0 90 0 90 0 90" />
+    <constant name="target_size" value="20.0" />
+    <constant name="target_thickness" value="2.0" />
+    <variable name="i" value="0" />
+  </define>
+  <materials>
+  </materials>
+  <solids>
+    <box lunit="cm" name="world" x="world_size" y="world_size" z="world_size" />
+    <box lunit="cm" name="single_plate" x="plate_length" y="single_plate_width" z="plate_thickness"/>
+    <box lunit="cm" name="double_plate" x="plate_length" y="double_plate_width" z="plate_thickness"/>
+    <box lunit="cm" name="single_array" x="plate_length" y="single_plate_width" z="array_thickness"/>
+    <box lunit="cm" name="double_array" x="plate_length" y="double_plate_width" z="array_thickness"/>
+    <box lunit="cm" name="strip" x="plate_length" y="strip_width" z="array_thickness"/>
+    <box lunit="cm" name="target" x="target_size" y="target_size" z="target_thickness"/>
+  </solids>
+  <structure>
+     <volume name="strip_volume" >
+      <materialref ref="G4_Si" />
+      <solidref ref="strip" />
+    </volume>
+   <volume name="single_array_volume" >
+      <materialref ref="G4_Si" />
+      <solidref ref="single_array" />
+      <replicavol number="640">
+        <volumeref ref="strip_volume"/>
+        <replicate_along_axis> 
+          <direction y="1" />
+          <width value="0.006" unit="cm"/>
+          <offset value="0" unit="cm"/>
+        </replicate_along_axis>
+      </replicavol>
+    </volume>
+    <volume name="double_array_volume" >
+      <materialref ref="G4_Si" />
+      <solidref ref="double_array" />
+      <replicavol number="1280">
+        <volumeref ref="strip_volume"/>
+        <replicate_along_axis> 
+          <direction y="1" />
+          <width value="0.006" unit="cm"/>
+          <offset value="0" unit="cm"/>
+        </replicate_along_axis>
+      </replicavol>
+    </volume>
+    <volume name="single_plate_volume" >
+      <materialref ref="G4_C" />
+      <solidref ref="single_plate" />
+      <physvol name="phys_single_array_volume">
+        <volumeref ref="single_array_volume"/>
+      </physvol>
+    </volume>
+    <volume name="double_plate_volume" >
+      <materialref ref="G4_C" />
+      <solidref ref="double_plate" />
+      <physvol name="phys_double_array_volume">
+        <volumeref ref="double_array_volume"/>
+      </physvol>
+    </volume>
+    <volume name="target_volume" >
+      <materialref ref="G4_C" />
+      <solidref ref="target" />
+    </volume>
+    <volume name="world_volume" >
+      <materialref ref="G4_AIR" />
+      <solidref ref="world" />
+      <loop for="i" from="0" to="number_of_plates_upstream+number_of_plates_midstream-1" step="1">
+        <physvol copynumber="i">
+          <volumeref ref="single_plate_volume" />
+          <position name="ssd_plate_position[i]" unit="cm" x="0" y="0" z="z_plate[i+1]" />
+          <rotation name="ssd_plate_rotation[i]" unit="deg" x="0" y="0" z="rotation_plate[i+1]" />
+        </physvol>
+      </loop>
+      <loop for="i" from="number_of_plates_upstream+number_of_plates_midstream" to="total_number_of_plates-1" step="1">
+        <physvol copynumber="i">
+          <volumeref ref="double_plate_volume" />
+          <position name="ssd_plate_position[i]" unit="cm" x="0" y="0" z="z_plate[i+1]" />
+          <rotation name="ssd_plate_rotation[i]" unit="deg" x="0" y="0" z="rotation_plate[i+1]" />
+        </physvol>
+      </loop>
+      <physvol copynumber="i">
+        <volumeref ref="target_volume" />
+        <position name="target_position" unit="cm" x="0" y="0" z="0" />
+      </physvol>
+    </volume>
+  </structure>
+  <setup name="Default" version="1.0" >
+    <world ref="world_volume" />
+  </setup>
+</gdml>
